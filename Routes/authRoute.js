@@ -3,6 +3,7 @@ const {
   registerController,
   loginController,
   currentUser,
+  forgotPasswordController,
 } = require("../Controllers/authControllers")
 const router = express.Router()
 
@@ -14,8 +15,10 @@ router.post("/login", loginController)
 
 // now we have the json web token
 // we don't want to manually verify the token
-// so we use express json web token
+// so we use express=json-web-token
 // applying a middleware
 router.get("/current-user", authMiddleware, currentUser)
+
+router.post("/forgot-password", forgotPasswordController)
 
 module.exports = router

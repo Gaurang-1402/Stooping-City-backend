@@ -18,27 +18,30 @@ exports.registerController = async (req, res) => {
   // validation
 
   if (!firstName || !lastName)
-    return res.status(400).send("Please provide your first name and last name")
+    return res.json({ error: "Please provide your first name and last name" })
 
-  if (!age) return res.status(400).send("Please enter your age")
+  if (!age) return res.json({ error: "Please enter your age" })
 
   const isEmailExist = await User.findOne({ email })
 
   if (isEmailExist)
-    return res.status(400).send("This email is already in use. Please login")
+    return res.json({ error: "This email is already in use. Please login" })
 
   if (!password || password.length < 6)
-    return res
-      .status(400)
-      .send("Please provide a password with more than 6 characters")
+    return res.json({
+      error: "Please provide a password with more than 6 characters",
+    })
+
   if (password !== confirmPassword)
-    return res.status(400).send("The passwords do not match :(")
+    return res.json({
+      error: "The passwords do not match",
+    })
   const hashedPassword = await hashPassword(password)
 
   if (!secret)
-    return res
-      .status(400)
-      .send("Please enter an answer to the security question")
+    return res.json({
+      error: "Please enter an answer to the security question",
+    })
 
   const newUser = new User({
     firstName,
@@ -52,9 +55,14 @@ exports.registerController = async (req, res) => {
 
   try {
     await newUser.save()
-    return res.json({ ok: true })
+    return res.json({
+      ok: true,
+      success: "You have successfully been registered. Please login",
+    })
   } catch (err) {
-    return res.status(400).send("There was an error, please try again")
+    return res.json({
+      error: "There was an error, please try again",
+    })
   }
 }
 
@@ -68,9 +76,9 @@ exports.loginController = async (req, res) => {
     // object associated with that email
     const user = await User.findOne({ email })
     if (!user) {
-      return res
-        .status(400)
-        .send("Email not found. Please check your email or sign up.")
+      return res.json({
+        error: "Email not found. Please check your email or sign up.",
+      })
     }
 
     // we know that the password in DB is hashed, we can unhash and check if
@@ -78,7 +86,9 @@ exports.loginController = async (req, res) => {
     const isPasswordMatch = await comparePassword(password, user.password)
 
     if (!isPasswordMatch) {
-      return res.status(400).send("Password is incorrect")
+      return res.json({
+        error: "Password is incorrect",
+      })
     }
 
     /// jwt.sign() gives us a token back the params are
@@ -96,14 +106,13 @@ exports.loginController = async (req, res) => {
 
     // send jwt token and the user object to client
     return res.json({
+      success: "Logged in successfully",
       token: jwtToken,
       user,
     })
-
-    return res.send("hello")
   } catch (err) {
     console.log(err)
-    return res.status(400).send("An error occurred, please try again.")
+    return res.json({ error: "An error occurred, please try again." })
   }
 }
 
@@ -120,5 +129,40 @@ exports.currentUser = async (req, res) => {
   } catch (err) {
     console.log(err)
     return res.sendStatus(400)
+  }
+}
+
+exports.forgotPasswordController = async (req, res) => {
+  const { email, newPassword, confirmNewPassword, secret } = req.body
+  if (!newPassword || newPassword.length < 6) {
+    return res.json({
+      error: "Please enter a new password that is at least 6 characters long",
+    })
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    return res.json({
+      error: "The passwords do not match. Please check again",
+    })
+  }
+
+  const user = await User.findOne({ email, secret })
+
+  if (!user) {
+    return res.json({ error: "We can't verify those details" })
+  }
+
+  try {
+    const hashedNewPassword = await hashedPassword(newPassword)
+
+    User.findByIdAndUpdate(user._id, { password: hashedNewPassword })
+
+    return res.json({
+      success:
+        "Password successfully changed. Please login with your new password.",
+    })
+  } catch (err) {
+    console.log(err)
+    return res.json({ error: "Something went wrong. Try again." })
   }
 }
