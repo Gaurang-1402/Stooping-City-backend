@@ -2,6 +2,7 @@ import { comparePassword, hashPassword } from "../Helpers/bcryptHash"
 import User from "../Models/userModel"
 // npm i jsonwebtoken
 import jwt from "jsonwebtoken"
+import { nanoid } from "nanoid"
 
 exports.registerController = async (req, res) => {
   const {
@@ -51,6 +52,7 @@ exports.registerController = async (req, res) => {
     age,
     gender,
     secret,
+    username: nanoid(6),
   })
 
   try {
@@ -164,5 +166,87 @@ exports.forgotPasswordController = async (req, res) => {
   } catch (err) {
     console.log(err)
     return res.json({ error: "Something went wrong. Try again." })
+  }
+}
+
+exports.updateUserController = async (req, res) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      gender,
+      age,
+      username,
+      password,
+      confirmPassword,
+      secret,
+      about,
+      image,
+    } = req.body
+    const data = {}
+    if (firstName) {
+      data.firstName = firstName
+    }
+    if (lastName) {
+      data.lastName = lastName
+    }
+    if (gender) {
+      data.gender = gender
+    }
+    if (age) {
+      data.age = age
+    }
+    if (username) {
+      data.username = username
+    }
+
+    if (image) {
+      data.image = image
+    }
+    if (password) {
+      if (password == confirmPassword) {
+        if (password.length < 6) {
+          return res.json({
+            error: "Your password must be at least 6 characters long",
+          })
+        }
+        data.password = await hashPassword(password)
+      } else {
+        return res.json({ error: "Your newly entered passwords do not match" })
+      }
+    }
+
+    if (secret) {
+      data.secret = secret
+    }
+
+    if (about) {
+      data.about = about
+    }
+    let user = await User.findByIdAndUpdate(req.user._id, data, { new: true })
+
+    user.password = undefined
+    user.secret = undefined
+    res.json(user)
+  } catch (err) {
+    if (err.code == 11000) {
+      return res.json({ error: "Username is already taken" })
+    }
+    console.log(err)
+  }
+}
+
+exports.findPeopleController = async (req, res) => {
+  try {
+    // console.log(req.user._id)
+    const user = await User.findById(req.user._id)
+
+    let following = user.following
+    following.push(user._id)
+    const people = await User.find({ _id: { $nin: following } }).limit(10)
+    console.log(people)
+    res.json(people)
+  } catch (err) {
+    console.log(err)
   }
 }

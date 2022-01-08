@@ -4,6 +4,8 @@ const {
   loginController,
   currentUser,
   forgotPasswordController,
+  updateUserController,
+  findPeopleController,
 } = require("../Controllers/authControllers")
 const router = express.Router()
 
@@ -20,5 +22,9 @@ router.post("/login", loginController)
 router.get("/current-user", authMiddleware, currentUser)
 
 router.post("/forgot-password", forgotPasswordController)
+
+router.put("/profile-update", authMiddleware, updateUserController)
+
+router.get("/find-people", authMiddleware, findPeopleController)
 
 module.exports = router

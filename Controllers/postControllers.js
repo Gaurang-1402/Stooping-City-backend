@@ -51,7 +51,7 @@ export const getPostsController = async (req, res) => {
       .populate("postedBy", "_id firstName lastName image")
       .sort({ createdAt: -1 })
       .limit(10)
-    console.log(posts)
+    // console.log(posts)
 
     res.json(posts)
   } catch (err) {}
@@ -60,5 +60,35 @@ export const getPostsController = async (req, res) => {
 export const userPostController = async (req, res) => {
   try {
     const post = await Post.findById(req.params._id)
-  } catch (err) {}
+    res.json(post)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export const updatePostController = async (req, res) => {
+  try {
+    // first param is the key by which we search second param is the new content
+    const post = await Post.findByIdAndUpdate(req.params.id, req.body, {
+      new: true, // this enables you to get the new post
+    })
+    res.json(post)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export const deletePostController = async (req, res) => {
+  try {
+    const post = await Post.findByIdAndDelete(req.params.id)
+    // we can delete the post from cloudinary
+    // some posts may not have an image
+    // console.log("DELETE POST", post)
+    if (post.image.public_id) {
+      const image = await cloudinary.uploader.destroy(post.image.public_id)
+    }
+    res.json({ ok: true })
+  } catch (err) {
+    console.log(err)
+  }
 }

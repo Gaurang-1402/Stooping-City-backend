@@ -27,6 +27,11 @@ const userSchema = new Schema(
       min: 6,
       max: 64,
     },
+    username: {
+      type: String,
+      unique: true,
+      required: true,
+    },
     gender: {
       type: String,
     },
@@ -36,8 +41,13 @@ const userSchema = new Schema(
     secret: {
       type: String,
     },
-    about: {},
-    photo: String,
+    about: {
+      type: String,
+    },
+    image: {
+      url: String,
+      public_id: String,
+    },
 
     following: [{ type: Schema.ObjectId, ref: "User" }],
     followers: [{ type: Schema.ObjectId, ref: "User" }],
