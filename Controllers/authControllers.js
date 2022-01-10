@@ -250,3 +250,42 @@ exports.findPeopleController = async (req, res) => {
     console.log(err)
   }
 }
+
+exports.userFollowController = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $addToSet: { following: req.body._id },
+      },
+      { new: true }
+    ).select("-password -secret")
+    res.json(user)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+exports.userFollowingController = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+    const following = await User.find({ _id: user.following }).limit(100)
+    res.json(following)
+  } catch (err) {
+    console.log(err)
+  }
+}
+exports.userUnfollowController = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $pull: { following: req.body._id },
+      },
+      { new: true }
+    )
+    res.json(user)
+  } catch (err) {
+    console.log(err)
+  }
+}

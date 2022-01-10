@@ -1,6 +1,7 @@
 import Post from "../Models/postModel"
 import cloudinary from "cloudinary"
 import { ChildProcess } from "child_process"
+import User from "../Models/userModel"
 
 exports.createPostController = async (req, res) => {
   const { postContent, image } = req.body
@@ -88,6 +89,92 @@ export const deletePostController = async (req, res) => {
       const image = await cloudinary.uploader.destroy(post.image.public_id)
     }
     res.json({ ok: true })
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export const newsFeedController = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+
+    let following = user.following
+
+    following.push(req.user._id)
+
+    const posts = await Post.find({ postedBy: { $in: following } })
+      .populate("postedBy", "_id firstName lastName image")
+      .populate("comments.postedBy", "_id firstName lastName image")
+      .sort({ createdAt: -1 })
+      .limit(10)
+
+    console.log("change ID now posts", posts)
+
+    res.json(posts)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export const likePostController = async (req, res) => {
+  try {
+    const post = await Post.findByIdAndUpdate(
+      req.body._id,
+      // add to set adds ID to likes list
+      { $addToSet: { likes: req.user._id } },
+      { new: true }
+    )
+    res.json(post)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export const unLikePostController = async (req, res) => {
+  try {
+    const post = await Post.findByIdAndUpdate(
+      req.body._id,
+      // pull removes ID from likes list
+      { $pull: { likes: req.user._id } },
+      { new: true }
+    )
+    res.json(post)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export const addCommentController = async (req, res) => {
+  try {
+    const { postId, comment } = req.body
+
+    const post = await Post.findByIdAndUpdate(
+      postId,
+      {
+        $push: { comments: { text: comment, postedBy: req.user._id } },
+      },
+      { new: true }
+    )
+      .populate("postedBy", "_id firstName lastName image")
+      .populate("comments.postedBy", "_id firstName lastName image")
+    res.json(post)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export const removeCommentController = async (req, res) => {
+  try {
+    const { postId, comment } = req.body
+
+    const post = await Post.findByIdAndUpdate(
+      postId,
+      {
+        $pull: { comments: { _id: comment._id } },
+      },
+      { new: true }
+    )
+    res.json(post)
   } catch (err) {
     console.log(err)
   }

@@ -6,6 +6,11 @@ const {
   userPostController,
   updatePostController,
   deletePostController,
+  newsFeedController,
+  likePostController,
+  unLikePostController,
+  addCommentController,
+  removeCommentController,
 } = require("../Controllers/postControllers")
 
 import { canEditDeletePost } from "../Middlewares/canEditDeletePost"
@@ -46,5 +51,13 @@ router.delete(
   canEditDeletePost,
   deletePostController
 )
+
+router.get("/news-feed", authMiddleware, newsFeedController)
+
+router.put("/like-post", authMiddleware, likePostController)
+router.put("/unlike-post", authMiddleware, unLikePostController)
+
+router.put("/add-comment", authMiddleware, addCommentController)
+router.delete("/remove-comment", authMiddleware, removeCommentController)
 
 module.exports = router
