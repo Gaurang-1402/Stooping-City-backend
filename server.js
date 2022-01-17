@@ -23,6 +23,11 @@ const io = require("socket.io")(http, {
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-type"],
   },
+  cors: {
+    origin: process.env.LOCAL_CLIENT_URL,
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-type"],
+  },
 })
 
 // specifying morgan log format type dev- middleware
