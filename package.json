@@ -4,7 +4,7 @@
   "description": "Wise's backend",
   "main": "someFile.js",
   "scripts": {
-    "start": "nodemon -r esm server.js"
+    "start": "node -r esm server.js"
   },
   "repository": {
     "type": "git",
