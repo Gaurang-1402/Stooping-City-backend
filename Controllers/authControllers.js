@@ -289,3 +289,34 @@ exports.userUnfollowController = async (req, res) => {
     console.log(err)
   }
 }
+
+export const searchUserController = async (req, res) => {
+  const { query } = req.params
+  if (!query) return
+  try {
+    // $regex is special method from mongodb
+    // The i modifier is used to perform case-insensitive matching
+    const user = await User.find({
+      $or: [
+        { firstName: { $regex: query, $options: "i" } },
+        { username: { $regex: query, $options: "i" } },
+      ],
+    }).select("-password -secret")
+    res.json(user)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export const getUserController = async (req, res) => {
+  const { username } = req.params
+
+  try {
+    const user = await User.findOne({ username: username }).select(
+      "-password -secret"
+    )
+    res.json(user)
+  } catch (err) {
+    console.log(err)
+  }
+}

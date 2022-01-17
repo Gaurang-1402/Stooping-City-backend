@@ -44,6 +44,10 @@ const userSchema = new Schema(
     about: {
       type: String,
     },
+    role: {
+      type: String,
+      default: "Subscriber",
+    },
     image: {
       url: String,
       public_id: String,

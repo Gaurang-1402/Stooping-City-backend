@@ -1,6 +1,5 @@
 import Post from "../Models/postModel"
 import cloudinary from "cloudinary"
-import { ChildProcess } from "child_process"
 import User from "../Models/userModel"
 
 exports.createPostController = async (req, res) => {
@@ -61,6 +60,9 @@ export const getPostsController = async (req, res) => {
 export const userPostController = async (req, res) => {
   try {
     const post = await Post.findById(req.params._id)
+      .populate("postedBy", "_id firstName lastName image")
+      .populate("comments.postedBy", "_id firstName lastName image")
+
     res.json(post)
   } catch (err) {
     console.log(err)
@@ -102,13 +104,17 @@ export const newsFeedController = async (req, res) => {
 
     following.push(req.user._id)
 
+    // pagination
+
+    const currentPage = req.params.page || 1
+    const perPage = 3
+
     const posts = await Post.find({ postedBy: { $in: following } })
+      .skip((currentPage - 1) * perPage)
       .populate("postedBy", "_id firstName lastName image")
       .populate("comments.postedBy", "_id firstName lastName image")
       .sort({ createdAt: -1 })
-      .limit(10)
-
-    console.log("change ID now posts", posts)
+      .limit(perPage)
 
     res.json(posts)
   } catch (err) {
@@ -167,6 +173,9 @@ export const removeCommentController = async (req, res) => {
   try {
     const { postId, comment } = req.body
 
+    // console.log("ID of post is ", postId)
+    // console.log("comment of post is ", comment._id)
+
     const post = await Post.findByIdAndUpdate(
       postId,
       {
@@ -174,6 +183,46 @@ export const removeCommentController = async (req, res) => {
       },
       { new: true }
     )
+    console.log(post)
+    res.json(post)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export const allPostsController = async (req, res) => {
+  try {
+    const total = await Post.find({}).estimatedDocumentCount()
+
+    res.json(total)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export const getHomePostsController = async (req, res) => {
+  try {
+    const posts = await Post.find()
+      .populate("postedBy", "_id firstName lastName image")
+      .populate("comments.postedBy", "_id firstName lastName image")
+      .sort({ createdAt: -1 })
+      .limit(12)
+
+    res.json(posts)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+export const getPostController = async (req, res) => {
+  const { _id } = req.params
+  console.log(req.params._id)
+
+  try {
+    const post = await Post.findById(req.params._id)
+      .populate("postedBy", "_id firstName lastName image")
+      .populate("comments.postedBy", "_id firstName lastName image")
+
     res.json(post)
   } catch (err) {
     console.log(err)

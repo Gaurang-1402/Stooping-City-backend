@@ -13,6 +13,18 @@ const morgan = require("morgan")
 
 // give app all the express functionality required
 const app = express()
+// for socket.io
+const http = require("http").createServer(app)
+// after npm i socket.io
+// format in params is (http, {configuration})
+const io = require("socket.io")(http, {
+  // cors configuration needed
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-type"],
+  },
+})
 
 // specifying morgan log format type dev- middleware
 app.use(morgan("dev"))
@@ -32,7 +44,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // allows you to make requests to and from localhost:3000 to 8000
-app.use(cors({ origin: ["http://localhost:3000"] }))
+app.use(cors({ origin: [process.env.CLIENT_URL] }))
 
 // trial post request, first param is the route path
 // second is a callback function also called controller that always has
@@ -45,8 +57,16 @@ fs.readdirSync("./Routes").map((route) =>
   app.use("/api", require(`./Routes/${route}`))
 )
 
+// socket.io
+// io.on(eventName, callback function)
+io.on("connect", (socket) => {
+  socket.on("new-post", (newPost) => {
+    socket.broadcast.emit("new-post", newPost)
+  })
+})
+
 const port = process.env.PORT || 7000
 
-app.listen(port, () => {
+http.listen(port, () => {
   console.log(`Server started on port ${port}`.white)
 })

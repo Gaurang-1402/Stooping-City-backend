@@ -9,6 +9,8 @@ const {
   userFollowController,
   userFollowingController,
   userUnfollowController,
+  searchUserController,
+  getUserController,
 } = require("../Controllers/authControllers")
 const router = express.Router()
 
@@ -49,5 +51,9 @@ router.put(
   removeFollowerMiddleware,
   userUnfollowController
 )
+
+router.get("/search-user/:query", searchUserController)
+
+router.get("/user/:username", getUserController)
 
 module.exports = router
