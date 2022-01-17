@@ -2,11 +2,10 @@ import express from "express"
 import cors from "cors"
 import mongoose from "mongoose"
 import fs from "fs"
-
+require("dotenv").config()
 const colors = require("colors")
 
 // allows you to use dotenv values
-require("dotenv").config()
 
 // the esp import syntax doesn't work with morgan and dotenv
 const morgan = require("morgan")
@@ -20,7 +19,7 @@ const http = require("http").createServer(app)
 const io = require("socket.io")(http, {
   // cors configuration needed
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.CLIENT_URL,
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-type"],
   },
