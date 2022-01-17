@@ -43,7 +43,9 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // allows you to make requests to and from localhost:3000 to 8000
-app.use(cors({ origin: [process.env.CLIENT_URL] }))
+app.use(
+  cors({ origin: [process.env.CLIENT_URL, process.env.LOCAL_CLIENT_URL] })
+)
 
 // trial post request, first param is the route path
 // second is a callback function also called controller that always has
