@@ -7,6 +7,6 @@ import expressJwt from "express-jwt"
 // boilerplate for express-jwt
 // JWT-SECRET
 export const authMiddleware = expressJwt({
-  secret: "R940FJRBTNT0G9343-VMVIjvrjt",
+  secret: process.env.JWT_SECRET,
   algorithms: ["HS256"],
 })
